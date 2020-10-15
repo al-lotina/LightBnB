@@ -82,7 +82,20 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool.query(`
+  SELECT properties.*, reservations.*, avg(rating) as average_rating
+  FROM reservations
+  JOIN properties ON reservations.property_id = properties.id
+  JOIN property_reviews ON properties.id = property_reviews.property_id 
+  WHERE reservations.guest_id = $1
+  AND reservations.end_date < now()::date
+  GROUP BY properties.id, reservations.id
+  ORDER BY reservations.start_date
+  LIMIT $2;
+  `, [guest_id, limit])
+  .then(res => res.rows)
+  .catch(err => console.error('query error', err.stack));
+  // return getAllProperties(null, 2);
 }
 exports.getAllReservations = getAllReservations;
 
@@ -117,3 +130,13 @@ const addProperty = function(property) {
 exports.addProperty = addProperty;
 
 // $2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.
+/* id    | start_date |  end_date  | property_id | guest_id 
+---------+------------+------------+-------------+----------
+       4 | 2018-09-11 | 2018-09-26 |           1 |        1
+       5 | 2019-01-04 | 2019-02-01 |           2 |        2
+       6 | 2021-10-01 | 2021-10-14 |           3 |        3
+ 1009999 | 2022-09-30 | 2022-10-15 |         114 |      743
+ 1010000 | 2021-04-30 | 2021-05-18 |         841 |      269
+ 1010001 | 2021-08-22 | 2021-08-23 |         708 |      667
+ 1010002 | 2019-01-17 | 2019-01-20 |         840 |      136
+ */
