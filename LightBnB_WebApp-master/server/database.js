@@ -24,16 +24,7 @@ const getUserWithEmail = function(email) {
   `, [email])
   .then(res => res.rows[0])
   .catch(err => console.error('query error', err.stack));
-  // let user;
-  // for (const userId in users) {
-  //   user = users[userId];
-  //   if (user.email.toLowerCase() === email.toLowerCase()) {
-  //     break;
-  //   } else {
-  //     user = null;
-  //   }
-  // }
-  // return Promise.resolve(user);
+ 
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -49,7 +40,7 @@ const getUserWithId = function(id) {
   `, [id])
   .then(res => res.rows[0])
   .catch(err => console.error('query error', err.stack)); 
-  // return Promise.resolve(users[id]);
+
 }
 exports.getUserWithId = getUserWithId;
 
@@ -67,10 +58,7 @@ const addUser =  function(user) {
   `, [user.name, user.email, user.password])
   .then(res => res.rows)
   .catch(err => console.error('query error', err.stack));
-  // const userId = Object.keys(users).length + 1;
-  // user.id = userId;
-  // users[userId] = user;
-  // return Promise.resolve(user);
+  
 }
 exports.addUser = addUser;
 
@@ -95,7 +83,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   `, [guest_id, limit])
   .then(res => res.rows)
   .catch(err => console.error('query error', err.stack));
-  // return getAllProperties(null, 2);
+ 
 }
 exports.getAllReservations = getAllReservations;
 
@@ -140,7 +128,7 @@ const getAllProperties = function(options, limit = 10) {
   return pool.query(queryString, queryParams)
   .then(res => res.rows);
 }
-// afgter group ... HAVING avg(property_reviews.rating) >= 4
+
 exports.getAllProperties = getAllProperties;
 
 /**
@@ -149,21 +137,12 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  return pool.query(`
+  INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+  RETURNING *;
+  `, [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms])
+  .then(res => res.rows)
+  .catch(err => console.error('query error', err.stack));
 }
 exports.addProperty = addProperty;
-
-// $2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.
-/* id    | start_date |  end_date  | property_id | guest_id 
----------+------------+------------+-------------+----------
-       4 | 2018-09-11 | 2018-09-26 |           1 |        1
-       5 | 2019-01-04 | 2019-02-01 |           2 |        2
-       6 | 2021-10-01 | 2021-10-14 |           3 |        3
- 1009999 | 2022-09-30 | 2022-10-15 |         114 |      743
- 1010000 | 2021-04-30 | 2021-05-18 |         841 |      269
- 1010001 | 2021-08-22 | 2021-08-23 |         708 |      667
- 1010002 | 2019-01-17 | 2019-01-20 |         840 |      136
- */
